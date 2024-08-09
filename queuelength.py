@@ -10,23 +10,22 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from collections import defaultdict
 
-# Vehicle length in feet
 VEHICLE_LENGTH = 15
 
 def pts(arrival_profile, traffic_signal_state, delta_u, initial_queue_length):
     a = [0] + arrival_profile
     s = [0] + traffic_signal_state
     T = len(a)
-    max_queue = 11  # Change the maximum queue length to 5
+    max_queue = 11
 
     x_t = np.zeros((T, max_queue))
     b_t = np.zeros(T)
-    q_t = np.zeros(T)  # Initialize queue length array
+    q_t = np.zeros(T)
 
     # Set the initial queue length
     if initial_queue_length < max_queue:
         x_t[0][initial_queue_length] = 1.0
-        q_t[0] = initial_queue_length  # Initialize q_t with initial queue length
+        q_t[0] = initial_queue_length
     else:
         x_t[0][max_queue - 1] = 1.0
         q_t[0] = max_queue - 1
@@ -63,7 +62,6 @@ def calculate_traffic_signal_state(cycle_length, green_start, green_end):
     return traffic_signal_state
 
 def calculate_arrival_profile(data, cycle_length, delta_u, phi):
-    # Filter data for vehicles in lanes labeled as "1-3"
     data = data[data['Lane'] == '1-3']
     
     data = data[['Simulation Time', 'Vehicle Number', 'Position', 'Speed']]
@@ -107,10 +105,8 @@ def calculate_queue_length_distribution(data, cycle_length, delta_u):
     
     return queue_lengths, queue_length_distribution
 
-# Fixed phi value
 phi = 0.6
 
-# Parameters for the '0.95.xlsx' file
 file_info = {
     'path': 'C:/Users/john/Documents/0.95.xlsx',
     'cycle_length': 60,
@@ -136,13 +132,11 @@ for _ in range(40):
     arrival_profile = calculate_arrival_profile(data, file_info['cycle_length'], file_info['delta_u'], phi)
     traffic_signal_state = calculate_traffic_signal_state(file_info['cycle_length'], file_info['green_start'], file_info['green_end'])
     
-    # Run simulation with initial queue length 0
     _, _, q_t_initial_0 = pts(arrival_profile, traffic_signal_state, file_info['delta_u'], 0)
-    q_t_max_values_initial_0.append(q_t_initial_0[:10])  # 前600s的每60s的队列长度
+    q_t_max_values_initial_0.append(q_t_initial_0[:10]) 
     
-    # Run simulation with initial queue length at maximum capacity
     _, _, q_t_initial_max = pts(arrival_profile, traffic_signal_state, file_info['delta_u'], 10)
-    q_t_max_values_initial_max.append(q_t_initial_max[:10])  # 前600s的每60s的队列长度
+    q_t_max_values_initial_max.append(q_t_initial_max[:10]) 
 
 q_t_max_values_initial_0 = np.max(q_t_max_values_initial_0, axis=0)
 q_t_max_values_initial_max = np.max(q_t_max_values_initial_max, axis=0)
@@ -151,31 +145,27 @@ cycle_time_points = np.arange(len(q_t_max_values_initial_0))
 plt.plot(cycle_time_points * 60, q_t_max_values_initial_0, marker='o', label="Queue estimate with zero initial condition", linewidth=3)
 plt.plot(cycle_time_points * 60, q_t_max_values_initial_max, marker='x', label="Queue estimate with saturated initial condition", linewidth=3)
 
-# Add numerical values on the plots
 for i, (x, y) in enumerate(zip(cycle_time_points * 60, q_t_max_values_initial_0)):
     plt.text(x, y, f'({x}, {y:.1f})', fontsize=8, ha='center', va='bottom')
 
 for i, (x, y) in enumerate(zip(cycle_time_points * 60, q_t_max_values_initial_max)):
     plt.text(x, y, f'({x}, {y:.1f})', fontsize=8, ha='center', va='bottom')
 
-# Measured data
-# Update the file info for measured data
+
 file_info['delta_u'] = 0.583
 
-# Filter for Link/Lane '1-3'
 filtered_data = data[data['Lane'] == '1-3'].dropna(subset=['Lane', 'Simulation Time', 'Speed'])
 
-repetitions = 20  # Repeat 20 times to reduce error
+repetitions = 20
 max_lengths_list = []
 
 for _ in range(repetitions):
     max_lengths = []
     queue_lengths, _ = calculate_queue_length_distribution(filtered_data, file_info['cycle_length'], file_info['delta_u'])
     
-    # Calculate max lengths for each 60-second interval up to 600 seconds
-    for i in range(0, 600, 60):  # 600 seconds with 60-second intervals
+    for i in range(0, 600, 60):
         interval_max_length = 0
-        for j in range(60):  # Calculate within the 60-second interval
+        for j in range(60):
             time_point = i + j
             if time_point in queue_lengths:
                 interval_max_length = max(interval_max_length, max(queue_lengths[time_point]))
@@ -183,18 +173,14 @@ for _ in range(repetitions):
     
     max_lengths_list.append(max_lengths)
 
-# Average max lengths over all repetitions
 avg_max_lengths = np.mean(max_lengths_list, axis=0)
 
-# Plotting measured data
 time_points = np.arange(0, 600, 60)
 plt.plot(time_points, avg_max_lengths, marker='x', label='Actual queue length', linewidth=3)
 
-# Add numerical values on the plots for measured data
 for i, (x, y) in enumerate(zip(time_points, avg_max_lengths)):
     plt.text(x, y, f'({x}, {y:.1f})', fontsize=8, ha='center', va='bottom')
 
-# Final plot adjustments
 plt.xlabel('Time (s)', fontsize=30)  
 plt.ylabel('Queue length (ft)', fontsize=30)  
 plt.xticks(fontsize=24) 
