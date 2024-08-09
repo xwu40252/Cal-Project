@@ -10,9 +10,8 @@ def pts(arrival_profile, traffic_signal_state, delta_u):
 
     x_t = np.zeros((T, max_queue))
     b_t = np.zeros(T)
-    q_t = np.zeros(T)  # Initialize queue length array
+    q_t = np.zeros(T)
     
-    # Randomize initial queue length
     initial_queue_length = np.random.randint(0, max_queue)
     x_t[0][initial_queue_length] = 1.0
 
@@ -35,7 +34,6 @@ def pts(arrival_profile, traffic_signal_state, delta_u):
         else:
             q_t[t] = max(q_t[t-1] - b_t[t], 0)
     
-    # Multiply q_t by delta_u
     q_t = q_t * delta_u * 15
 
     return x_t.tolist(), b_t.tolist(), q_t.tolist()
@@ -48,7 +46,6 @@ def calculate_traffic_signal_state(cycle_length, green_start, green_end):
     return traffic_signal_state
 
 def calculate_arrival_profile(data, cycle_length, delta_u, phi):
-    # Filter data for vehicles in lanes labeled as "1-4"
     data = data[data['Lane'] == '1-3']
     
     data = data[['Simulation Time', 'Vehicle Number', 'Position', 'Speed']]
@@ -62,35 +59,34 @@ def calculate_arrival_profile(data, cycle_length, delta_u, phi):
     arrival_profile = (arrivals_per_time_point / (N_c * delta_u * phi)).tolist()
     return arrival_profile
 
-# 文件路径和对应的参数
 files_and_params = [
     {
         'path': 'C:/Users/john/Documents/over.xlsx',
         'cycle_length': 60,
         'green_start': 33,
         'green_end': 53,
-        'delta_u': 0.6
+        'delta_u': 1
     },
     {
         'path': 'C:/Users/john/Documents/0.95.xlsx',
         'cycle_length': 60,
         'green_start': 33,
         'green_end': 53,
-        'delta_u': 0.583
+        'delta_u': 1
     },
     {
         'path': 'C:/Users/john/Documents/0.7.xlsx',
         'cycle_length': 60,
         'green_start': 33,
         'green_end': 53,
-        'delta_u': 0.43
+        'delta_u': 1
     },
     {
         'path': 'C:/Users/john/Documents/0.4.xlsx',
         'cycle_length': 60,
         'green_start': 33,
         'green_end': 53,
-        'delta_u': 0.2389  # Adjust this value according to your data
+        'delta_u': 1
     },
 ]
 
@@ -117,13 +113,13 @@ for file_info in files_and_params:
         arrival_profile = calculate_arrival_profile(data, file_info['cycle_length'], file_info['delta_u'], phi)
         traffic_signal_state = calculate_traffic_signal_state(file_info['cycle_length'], file_info['green_start'], file_info['green_end'])
         x_t, b_t, q_t = pts(arrival_profile, traffic_signal_state, file_info['delta_u'])
-        q_t_max_values.append(q_t[:10])  # 前600s的每60s的队列长度
+        q_t_max_values.append(q_t[:10]) 
 
     q_t_max_values = np.max(q_t_max_values, axis=0)
     
     label = f"{labels[file_info['path'].split('/')[-1]]})"
     cycle_time_points = np.arange(len(q_t_max_values))
-    plt.plot(cycle_time_points * 60, q_t_max_values, marker='o', label=label)  # 每60s的点
+    plt.plot(cycle_time_points * 60, q_t_max_values, marker='o', label=label) 
 
 plt.xlabel('Time (s)')
 plt.ylabel('Queue Length (Number of vehicles)')
