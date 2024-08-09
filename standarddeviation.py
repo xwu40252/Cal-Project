@@ -14,7 +14,7 @@ def pts(arrival_profile, traffic_signal_state):
     a = [0] + arrival_profile
     s = [0] + traffic_signal_state
     T = len(a)
-    max_queue = 20
+    max_queue = 11
 
     x_t = np.zeros((T, max_queue))
     b_t = np.zeros(T)
@@ -130,7 +130,7 @@ green_end = 53
 
 file_path = 'C:/Users/john/Documents/0.4.xlsx'
 label = 'CS = 0.4'
-delta_u = 4
+delta_u = 1
 phi_values = [0.1, 0.2, 0.3]
 
 plt.figure(figsize=(10, 6))
