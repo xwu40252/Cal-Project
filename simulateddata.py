@@ -60,7 +60,6 @@ def calculate_queue_length_distribution(data, cycle_length, delta_u):
     
     return queue_lengths, queue_length_distribution
 
-# File paths and corresponding parameters
 files_and_params = [
     {
         'path': 'C:/Users/john/Documents/over.xlsx',
@@ -101,23 +100,19 @@ all_max_lengths = []
 for file_info in files_and_params:
     data = pd.read_excel(file_info['path'])
     
-    # Filter for Link/Lane '93-4'
     filtered_data = data[data['Lane'] == '1-3'].dropna(subset=['Lane', 'Simulation Time', 'Speed'])
     
-    # Debugging: Print the max simulation time
-    print(f"Max simulation time in {file_info['path']}: {filtered_data['Simulation Time'].max()}")
     
-    repetitions = 10  # Repeat 10 times to reduce error
+    repetitions = 10
     max_lengths_list = []
 
     for _ in range(repetitions):
         max_lengths = []
         queue_lengths, _ = calculate_queue_length_distribution(filtered_data, file_info['cycle_length'], file_info['delta_u'])
         
-        # Calculate max lengths for each 60-second interval up to 600 seconds
-        for i in range(0, 600, 60):  # 600 seconds with 60-second intervals
+        for i in range(0, 600, 60):
             interval_max_length = 0
-            for j in range(60):  # Calculate within the 60-second interval
+            for j in range(60):
                 time_point = i + j
                 if time_point in queue_lengths:
                     interval_max_length = max(interval_max_length, max(queue_lengths[time_point]))
@@ -125,14 +120,12 @@ for file_info in files_and_params:
         
         max_lengths_list.append(max_lengths)
     
-    # Average max lengths over all repetitions
     avg_max_lengths = np.mean(max_lengths_list, axis=0)
     all_max_lengths.append({
         'file_name': file_info['path'].split('/')[-1],
         'max_lengths': avg_max_lengths
     })
 
-# Plotting
 plt.figure(figsize=(12, 8))
 
 labels = ['over saturated', 'CS = 0.95', 'CS = 0.7', 'CS = 0.4']
