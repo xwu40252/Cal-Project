@@ -12,4 +12,4 @@
 
 - variance.py: Calculate the variance of simulated data and estimated data over time for different CS and phi values.
 
-- dynasignal10inter(estdata).py: Dynamically adjust signal state using estimates data
+- dynasignal10inter(estdata).py/ dynamiccontrol.py: Dynamically adjust signal state using estimates data
